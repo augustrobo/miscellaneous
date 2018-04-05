@@ -1,0 +1,73 @@
+---
+title: "Missing Values Visualization"
+output: 
+  html_document:
+    toc: true
+---
+
+
+## Load Packages
+
+```{r}
+pacman::p_load(ggplot2, data.table)
+```
+
+
+## Load Data
+
+```{r}
+hpData = fread("https://raw.githubusercontent.com/augustrobo/miscellaneous/master/kaggle-house-prices/datasets/train.csv")
+```
+
+```{r}
+dim(hpData)
+str(hpData)
+```
+
+
+
+## Missing Values
+
+No. and ratio of features without missing values.
+
+```{r}
+hpFeatureNA = complete.cases(t(hpData))
+sum(hpFeatureNA); mean(hpFeatureNA)  
+```
+
+
+## Visualize Missing Values
+
+
+```{r}
+hpDataNA = is.na(hpData[, !hpFeatureNA, with = FALSE])
+dim(hpDataNA)
+
+hpDataNA_reshape = melt(hpDataNA)
+
+ggplot(hpDataNA_reshape, aes(Var1, Var2)) + 
+  geom_tile(aes(fill = value)) +
+  scale_fill_grey() +
+  labs(x = "", y = "", fill = "NA") +
+  theme_minimal()
+```
+
+
+
+## Wrap Up As A Function
+
+```{r}
+NAplot = function(dt){
+  dtFeatureNA = complete.cases(t(dt))
+  dtNA = is.na(dt[, !dtFeatureNA, with = FALSE])
+  dtNA_reshape = melt(dtNA)
+  
+  ggplot(dtNA_reshape, aes(Var1, Var2)) + 
+    geom_tile(aes(fill = value)) +
+    scale_fill_grey() +
+    labs(x = "", y = "", fill = "NA") +
+    theme_minimal()
+} 
+
+NAplot(hpData)
+```
