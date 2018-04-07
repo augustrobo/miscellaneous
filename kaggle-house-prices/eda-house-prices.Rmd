@@ -1,0 +1,75 @@
+---
+title: "EDA - House Prices"
+output: 
+  html_document:
+    toc: true
+---
+
+**Goal**: predict `SalePrice`
+
+## Load Packages
+
+```{r}
+pacman::p_load(ggplot2, data.table, gridExtra)
+```
+
+
+## Load Data
+
+```{r}
+hpData = fread("https://raw.githubusercontent.com/augustrobo/miscellaneous/master/kaggle-house-prices/datasets/train.csv")
+```
+
+
+## Visualization
+
+### Categorical 
+
+- Categorical features vs `SalePrice`: **boxplot**
+
+```{r, fig.width=14, fig.height=80}
+# categorical features
+catVars1 = names(hpData)[sapply(hpData, is.character)]
+catVars2 = c("MSSubClass", "OverallQual", "OverallCond", 
+             "YearBuilt", "YearRemodAdd", "GarageYrBlt",
+             "MoSold", "YrSold")
+catVars = c(catVars1, catVars2)
+
+
+# plot categorical features vs SalePrice
+catPlot = function(dt, vars, y){
+  dt[, (vars):=lapply(.SD, as.factor), .SDcols = vars]
+  p = list()
+  i = 1
+  for(x in vars){
+    p[[i]] = ggplot(dt, aes_string(x, y)) + geom_boxplot()
+    i = i + 1
+  }
+  do.call(grid.arrange, c(p, ncol = 3))
+}
+
+catPlot(hpData, catVars, "SalePrice")
+```
+
+### Numerical
+
+- Numerical features vs `SalePrice`: **scatterplot**
+
+```{r, fig.width=14, fig.height=40, warning=F, message=F}
+# numerical features
+colnames(hpData)[names(hpData) == "1stFlrSF"] = "FirstFlrSF"
+colnames(hpData)[names(hpData) == "2ndFlrSF"] = "SecondFlrSF"
+colnames(hpData)[names(hpData) == "3SsnPorch"] = "ThreeSsnPorch"
+numVars = setdiff(names(hpData), c(catVars, "Id", "SalePrice"))
+
+numPlot = function(dt, vars, y){
+  p = list()
+  i = 1
+  for(x in vars){
+    p[[i]] = ggplot(dt, aes_string(x, y)) + geom_point() + geom_smooth()
+    i = i + 1
+  }
+  do.call(grid.arrange, c(p, ncol = 3))
+}
+numPlot(hpData, numVars, "SalePrice")
+```
